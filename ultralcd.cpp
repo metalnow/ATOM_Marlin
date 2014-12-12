@@ -701,14 +701,18 @@ static void lcd_sd_updir()
     currentMenuViewOffset = 0;
 }
 
+bool last_sdprinting = false;
 void lcd_sdcard_menu()
 {
     if (lcdDrawUpdate == 0 && LCD_CLICKED == 0) 
     {
-      if ( lcdLongFilenameDraw == 1 )
+      if ( !last_sdprinting && card.sdprinting )
+        lcdLongFilenameDraw = lcd_implementation_draw_longfilename(lcdCurrentLine, true);
+      last_sdprinting = card.sdprinting;
+      if ( lcdLongFilenameDraw == 1 && !card.sdprinting )
       {
-          lcdLongFilenameDraw = lcd_implementation_draw_longfilename(lcdCurrentLine);
-      }
+          lcdLongFilenameDraw = lcd_implementation_draw_longfilename(lcdCurrentLine, false);
+      }      
       return;	// nothing to do (so don't thrash the SD card)
     }
     uint16_t fileCnt = card.getnrfilenames();

@@ -620,21 +620,31 @@ char tmpLongFilename[27];
 uint8_t delayCnt = 0;
 char * currentChar  = '\0';
 uint8_t nextPos = 1; 
-static uint8_t lcd_implementation_draw_longfilename(uint8_t row)
+static uint8_t lcd_implementation_draw_longfilename(uint8_t row, bool reset)
 {
     if ( tmpLongFilename[LCD_WIDTH - 1] == '\0' )
-      return 0;
+        return 0;
+
+    if ( reset )
+    {
+        nextPos = 0;
+        return 1;
+    }      
+    else
+    {
+        delayCnt++;
+        if ( delayCnt < DELAY_SHOW )    
+          return 1;
+        delayCnt = 0;
     
-    delayCnt++;
-    if ( delayCnt < DELAY_SHOW )    
-      return 1;
-    delayCnt = 0;
+    }
+ 
     
     uint8_t n = LCD_WIDTH - 1;
     lcd.setCursor(0, row);
     lcd.print('>');
 
-    currentChar = &tmpLongFilename[nextPos];
+    currentChar = &tmpLongFilename[nextPos];    
     
     while( (*currentChar != '\0') && (n>0) )
     {
