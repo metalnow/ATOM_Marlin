@@ -106,6 +106,8 @@ static void menu_action_setting_edit_callback_long5(const char* pstr, unsigned l
         if (lcdDrawUpdate) { \
             const char* _label_pstr = PSTR(label); \
             if ((encoderPosition / ENCODER_STEPS_PER_MENU_ITEM) == _menuItemNr) { \
+                lcdCurrentLine = _drawLineNr; \
+                lcdLongFilenameDraw = 1; \
                 lcd_implementation_drawmenu_ ## type ## _selected (_drawLineNr, _label_pstr , ## args ); \
             }else{\
                 lcd_implementation_drawmenu_ ## type (_drawLineNr, _label_pstr , ## args ); \
@@ -145,7 +147,9 @@ bool lcd_oldcardstatus;
 menuFunc_t currentMenu = lcd_status_screen; /* function pointer to the currently active menu */
 uint32_t lcd_next_update_millis;
 uint8_t lcd_status_update_delay;
-uint8_t lcdDrawUpdate = 2;                  /* Set to none-zero when the LCD needs to draw, decreased after every draw. Set to 2 in LCD routines so the LCD gets atleast 1 full redraw (first redraw is partial) */
+uint8_t lcdDrawUpdate = 2;                  /* Set to none-zero when the LCD needs to draw, decreased after every draw. Set to 2 in LCD routines so the LCD gets\ atleast 1 full redraw (first redraw is partial) */
+uint8_t lcdLongFilenameDraw = 0;
+uint8_t lcdCurrentLine = 0;
 
 //prevMenu and prevEncoderPosition are used to store the previous menu location when editing settings.
 menuFunc_t prevMenu = NULL;
@@ -700,7 +704,13 @@ static void lcd_sd_updir()
 void lcd_sdcard_menu()
 {
     if (lcdDrawUpdate == 0 && LCD_CLICKED == 0) 
-        return;	// nothing to do (so don't thrash the SD card)
+    {
+      if ( lcdLongFilenameDraw == 1 )
+      {
+          lcdLongFilenameDraw = lcd_implementation_draw_longfilename(lcdCurrentLine);
+      }
+      return;	// nothing to do (so don't thrash the SD card)
+    }
     uint16_t fileCnt = card.getnrfilenames();
     START_MENU();
     MENU_ITEM(back, MSG_MAIN, lcd_main_menu);
