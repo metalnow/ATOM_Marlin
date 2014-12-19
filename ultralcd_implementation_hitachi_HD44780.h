@@ -615,8 +615,10 @@ void lcd_implementation_drawedit(const char* pstr, char* value)
     lcd.print(value);
 }
 
-char tmpLongFilename[27];
-#define DELAY_SHOW 255
+#define LONG_FILENAME_LENGTH 64
+
+char tmpLongFilename[LONG_FILENAME_LENGTH];
+#define DELAY_SHOW 7
 uint8_t delayCnt = 0;
 char * currentChar  = '\0';
 uint8_t nextPos = 1; 
@@ -635,10 +637,8 @@ static uint8_t lcd_implementation_draw_longfilename(uint8_t row, bool reset)
         delayCnt++;
         if ( delayCnt < DELAY_SHOW )    
           return 1;
-        delayCnt = 0;
-    
+        delayCnt = 0;    
     }
- 
     
     uint8_t n = LCD_WIDTH - 1;
     lcd.setCursor(0, row);
@@ -652,10 +652,10 @@ static uint8_t lcd_implementation_draw_longfilename(uint8_t row, bool reset)
         currentChar++;
         n--;
     }    
-    
+        
     nextPos++;
     
-    if ( *currentChar == '\0' && n > 0 )
+    if ( *currentChar == '\0' && n >= 0 )
       nextPos = 0;    
       
     return 1;
@@ -669,12 +669,15 @@ static void lcd_implementation_drawmenu_sdfile_selected(uint8_t row, const char*
     if (longFilename[0] != '\0')
     {
         uint8_t tmp_n = 0;
-        while( ((c = *filename) != '\0') && (n>0) )        
+        const char* tmp = longFilename;
+        while( ((c = *tmp) != '\0') && (n>0) )        
         {
-            tmpLongFilename[tmp_n] = c;
-            tmp_n++;
+            tmp++;
+            tmpLongFilename[tmp_n++] = c;
             nextPos = 1;
         }        
+        while( tmp_n < LONG_FILENAME_LENGTH )
+          tmpLongFilename[tmp_n++] = '\0';
           
         filename = longFilename;
         longFilename[LCD_WIDTH-1] = '\0';

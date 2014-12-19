@@ -106,8 +106,6 @@ static void menu_action_setting_edit_callback_long5(const char* pstr, unsigned l
         if (lcdDrawUpdate) { \
             const char* _label_pstr = PSTR(label); \
             if ((encoderPosition / ENCODER_STEPS_PER_MENU_ITEM) == _menuItemNr) { \
-                lcdCurrentLine = _drawLineNr; \
-                lcdLongFilenameDraw = 1; \
                 lcd_implementation_drawmenu_ ## type ## _selected (_drawLineNr, _label_pstr , ## args ); \
             }else{\
                 lcd_implementation_drawmenu_ ## type (_drawLineNr, _label_pstr , ## args ); \
@@ -701,14 +699,18 @@ static void lcd_sd_updir()
     currentMenuViewOffset = 0;
 }
 
-bool last_sdprinting = false;
+uint32_t last_encoderPosition = 0;
 void lcd_sdcard_menu()
 {
+    if ( last_encoderPosition != encoderPosition )
+        lcdLongFilenameDraw = 0;
+    last_encoderPosition = encoderPosition;
+        
     if (lcdDrawUpdate == 0 && LCD_CLICKED == 0) 
     {
-      if ( !last_sdprinting && card.sdprinting )
-        lcdLongFilenameDraw = lcd_implementation_draw_longfilename(lcdCurrentLine, true);
-      last_sdprinting = card.sdprinting;
+      //if ( !last_sdprinting && card.sdprinting )
+      //  lcdLongFilenameDraw = lcd_implementation_draw_longfilename(lcdCurrentLine, true);
+      //last_sdprinting = card.sdprinting;
       if ( lcdLongFilenameDraw == 1 && !card.sdprinting )
       {
           lcdLongFilenameDraw = lcd_implementation_draw_longfilename(lcdCurrentLine, false);
@@ -738,6 +740,11 @@ void lcd_sdcard_menu()
                 MENU_ITEM(sddirectory, MSG_CARD_MENU, card.filename, card.longFilename);
             }else{
                 MENU_ITEM(sdfile, MSG_CARD_MENU, card.filename, card.longFilename);
+                if ((encoderPosition / ENCODER_STEPS_PER_MENU_ITEM) == _menuItemNr) 
+                {
+                    lcdCurrentLine = _drawLineNr+1;
+                    lcdLongFilenameDraw = 1;                    
+                }
             }
         }else{
             MENU_ITEM_DUMMY();
